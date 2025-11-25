@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Minimal, safe CSS: font + general colours only
+# Minimal, safe CSS
 st.markdown(
     """
     <style>
@@ -93,13 +93,39 @@ st.markdown(
     .metric-value {
         font-size: 1.6rem;
         font-weight: 600;
-        color: #111111;
         margin-bottom: 0.1rem;
     }
+
+    .metric-value.positive { color: #16a34a; }   /* green */
+    .metric-value.negative { color: #dc2626; }   /* red */
+    .metric-value.neutral  { color: #2563eb; }   /* blue */
 
     .metric-sub {
         font-size: 0.9rem;
         color: #4b5563;
+    }
+
+    /* custom table for breakdown */
+    table.bf-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin-top: 0.4rem;
+    }
+    .bf-table th {
+        text-align: left;
+        padding: 6px 4px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #374151;
+        font-weight: 600;
+    }
+    .bf-table td {
+        padding: 6px 4px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #111111;
+    }
+    .bf-table tr:last-child td {
+        border-bottom: none;
     }
 
     footer {visibility: hidden;}
@@ -179,16 +205,15 @@ def calculate_bridge_financing(
 #  LAYOUT
 # ===========================
 
-# Title
 st.title("Bridge Financing Calculator")
 st.markdown(
     '<div class="subtitle">Analyze the impact of short-term financing costs on your deal margins.</div>',
     unsafe_allow_html=True,
 )
 
-# ---------------- Inputs ----------------
+# ---------- Inputs ----------
 with st.container(border=True):
-    st.markdown('<div class="section-title">Deal Parameters</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Deal parameters</div>', unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
 
@@ -248,9 +273,9 @@ with st.container(border=True):
         format="%.2f",
     )
 
-st.markdown("")  # spacing
+st.markdown("")
 
-# ---------------- Outputs ----------------
+# ---------- Outputs ----------
 if invoice_amount <= 0:
     st.info(f"Enter a positive invoice amount ({CURRENCY_SYMBOL}) to generate calculations.")
 else:
@@ -269,6 +294,7 @@ else:
     margin_eaten_val = result["margin_eaten_value"]
     margin_eaten_pct = result["margin_eaten_pct_of_margin"]
 
+    # --- Summary box ---
     with st.container(border=True):
         st.markdown('<div class="section-title">Summary</div>', unsafe_allow_html=True)
 
@@ -277,7 +303,7 @@ else:
         with k1:
             st.markdown('<div class="metric-label">Net margin (after financing)</div>', unsafe_allow_html=True)
             st.markdown(
-                f'<div class="metric-value">{CURRENCY_SYMBOL} {net_margin:,.0f}</div>',
+                f'<div class="metric-value positive">{CURRENCY_SYMBOL} {net_margin:,.0f}</div>',
                 unsafe_allow_html=True,
             )
             st.markdown(
@@ -288,19 +314,19 @@ else:
         with k2:
             st.markdown('<div class="metric-label">Cost of financing</div>', unsafe_allow_html=True)
             st.markdown(
-                f'<div class="metric-value">{CURRENCY_SYMBOL} {margin_eaten_val:,.0f}</div>',
+                f'<div class="metric-value negative">{CURRENCY_SYMBOL} {margin_eaten_val:,.0f}</div>',
                 unsafe_allow_html=True,
             )
             st.markdown(
-                f'<div class="metric-sub">Interest: {CURRENCY_SYMBOL} {result["interest_cost"]:,.0f} | '
-                f'Fees: {CURRENCY_SYMBOL} {result["total_fees"]:,.0f}</div>',
+                f'<div class="metric-sub">Interest: {CURRENCY_SYMBOL} {result["interest_cost"]:,.0f} '
+                f'| Fees: {CURRENCY_SYMBOL} {result["total_fees"]:,.0f}</div>',
                 unsafe_allow_html=True,
             )
 
         with k3:
             st.markdown('<div class="metric-label">Margin erosion</div>', unsafe_allow_html=True)
             st.markdown(
-                f'<div class="metric-value">{margin_eaten_pct:.1f}%</div>',
+                f'<div class="metric-value negative">{margin_eaten_pct:.1f}%</div>',
                 unsafe_allow_html=True,
             )
             st.markdown(
@@ -311,7 +337,7 @@ else:
         with k4:
             st.markdown('<div class="metric-label">Effective annualized cost</div>', unsafe_allow_html=True)
             st.markdown(
-                f'<div class="metric-value">{result["effective_annualized_cost_pct"]:.2f}%</div>',
+                f'<div class="metric-value neutral">{result["effective_annualized_cost_pct"]:.2f}%</div>',
                 unsafe_allow_html=True,
             )
             st.markdown(
@@ -321,7 +347,7 @@ else:
 
     st.markdown("")
 
-    # -------- Chart + Breakdown --------
+    # --- Chart + Breakdown ---
     col_chart, col_table = st.columns([1.4, 1])
 
     with col_chart:
@@ -396,4 +422,5 @@ else:
                 }
             )
 
-            st.table(breakdown_df)
+            html_table = breakdown_df.to_html(index=False, classes="bf-table", border=0)
+            st.markdown(html_table, unsafe_allow_html=True)
