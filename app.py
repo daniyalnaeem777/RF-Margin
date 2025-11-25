@@ -76,7 +76,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-#  Aesthetic CSS Styling
+#  Aesthetic CSS Styling (Added CSS to hide the empty block)
 # ---------------------------
 st.markdown(
     """
@@ -104,6 +104,21 @@ st.markdown(
         color: #1f2937 !important;
     }
     
+    /* ----------------------------------------------------------------- */
+    /* GLITCH FIX: HIDE THE EMPTY WHITE BAR (The component causing the issue) */
+    /* This targets a common Streamlit container that appears empty at the top of the main body */
+    /* It assumes the bar is the very first vertical block container on the page body. */
+    .stApp > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) {
+        margin-top: -2rem; /* Pull up elements if possible */
+        height: 0px !important; 
+        min-height: 0px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+        overflow: hidden;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
     /* ----------------------------------------------------------------- */
     /* HEADINGS & TEXT STYLING (BOLD HEADINGS)                           */
     /* ----------------------------------------------------------------- */
