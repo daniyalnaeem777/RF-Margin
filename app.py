@@ -5,7 +5,6 @@ import altair as alt
 # ---------------------------
 #  Core Calculation Function
 # ---------------------------
-
 def calculate_bridge_financing(
     annual_interest_rate_pct: float,
     invoice_amount: float,
@@ -17,41 +16,29 @@ def calculate_bridge_financing(
 ) -> dict:
     """Calculate the economics of bridge financing against an invoice."""
 
-    # Convert percents to decimals
     annual_rate = annual_interest_rate_pct / 100.0
     margin_rate = margin_pct / 100.0
     advance_rate = advance_rate_pct / 100.0
     arrangement_fee_rate = arrangement_fee_pct / 100.0
 
-    # Basic quantities
-    principal_borrowed = invoice_amount * advance_rate           # Amount you actually borrow
-    gross_margin_value = invoice_amount * margin_rate            # Profit before financing
+    principal_borrowed = invoice_amount * advance_rate
+    gross_margin_value = invoice_amount * margin_rate
 
-    # Interest cost (simple interest for the bridge period)
     interest_cost = principal_borrowed * annual_rate * (days_outstanding / 365.0)
 
-    # Up-front / additional fees
     arrangement_fee_value = invoice_amount * arrangement_fee_rate
     total_fees = arrangement_fee_value + fixed_fee
 
-    # Total cost of financing
     total_financing_cost = interest_cost + total_fees
-
-    # Margin after financing
     net_margin_after_financing = gross_margin_value - total_financing_cost
 
-    # How much margin is eaten
     margin_eaten_value = total_financing_cost
     margin_eaten_pct_of_margin = (
-        (margin_eaten_value / gross_margin_value) * 100.0
-        if gross_margin_value > 0
-        else 0.0
+        (margin_eaten_value / gross_margin_value) * 100.0 if gross_margin_value > 0 else 0.0
     )
 
-    # Financing cost as % of invoice
     financing_cost_pct_of_invoice = (total_financing_cost / invoice_amount) * 100.0
 
-    # Effective annualized cost on the invoice amount
     if days_outstanding > 0:
         effective_annualized_cost_pct = financing_cost_pct_of_invoice * (365.0 / days_outstanding)
     else:
@@ -79,412 +66,285 @@ def calculate_bridge_financing(
 
 
 # ---------------------------
-#  Streamlit UI
+#  Streamlit Configuration
 # ---------------------------
-
 st.set_page_config(
-    page_title="Bridge Financing Margin Calculator",
+    page_title="Bridge Financing Calculator",
+    page_icon="💸",
     layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Global styling – Helvetica, light background, black input text, grey labels
+# ---------------------------
+#  Aesthetic CSS Styling
+# ---------------------------
 st.markdown(
     """
     <style>
-    * {
-        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    /* Import modern font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
 
+    /* Background and global spacing */
     .stApp {
-        background: #f3f4f6;
+        background-color: #f8f9fa;
+        color: #1f2937;
+    }
+
+    /* Titles */
+    h1 {
+        font-weight: 700;
+        letter-spacing: -0.02em;
         color: #111827;
+        margin-bottom: 0.5rem;
     }
-
-    /* Center main block */
-    .main-block {
-        max-width: 1150px;
-        margin: 0 auto;
-        padding-bottom: 3rem;
-    }
-
-    .app-title {
-        text-align: center;
-        font-size: 2.2rem;
-        font-weight: 650;
-        color: #111827;
-        margin-top: 1.5rem;
-        margin-bottom: 0.4rem;
-    }
-
-    .app-subtitle {
-        text-align: center;
-        color: #4b5563;
-        font-size: 0.96rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .section-title {
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
+    
+    .subtitle {
+        font-size: 1.1rem;
         color: #6b7280;
-        margin-bottom: 0.85rem;
-        margin-top: 0.4rem;
-    }
-
-    .section-title-light {
-        color: #d1d5db;
-    }
-
-    /* Cards / containers */
-    .card {
-        padding: 1.4rem 1.5rem 1.1rem 1.5rem;
-        border-radius: 14px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
-    }
-
-    .input-card {
-        margin-bottom: 1.8rem;
-    }
-
-    .summary-wrapper {
-        border-radius: 16px;
-        padding: 1.6rem 1.5rem 1.4rem 1.5rem;
-        background: #111827;
-        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
         margin-bottom: 2rem;
     }
 
-    .summary-inner-card {
-        padding: 1.1rem 1.2rem;
+    /* Custom Cards for Inputs */
+    .input-container {
+        background-color: #ffffff;
+        padding: 2rem;
         border-radius: 12px;
-        border: 1px solid #374151;
-        background: #111827;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+
+    /* Input Fields Styling */
+    div[data-baseweb="input"] {
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        background-color: #fff;
+    }
+    
+    /* Remove the top colored bar from streamlit */
+    header[data-testid="stHeader"] {
+        background-color: rgba(0,0,0,0);
+    }
+    
+    /* Metrics Box Styling (CSS Grid) */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
     }
 
     .metric-label {
-        font-size: 0.78rem;
+        font-size: 0.85rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: #9ca3af;
-        margin-bottom: 0.2rem;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
     }
 
     .metric-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #f9fafb;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #111827;
     }
 
     .metric-sub {
-        font-size: 0.84rem;
-        color: #9ca3af;
-        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        color: #4b5563;
     }
+    
+    .negative { color: #ef4444; }
+    .positive { color: #10b981; }
+    .neutral { color: #3b82f6; }
 
-    /* Labels – grey */
-    label {
-        color: #6b7280 !important;
-        font-size: 0.85rem !important;
-        margin-bottom: 0.15rem !important;
-    }
-
-    /* Inputs – white background, BLACK text */
-    input[type="number"], input[type="text"] {
-        color: #111827 !important;
-        background-color: #ffffff !important;
-    }
-
-    div[data-baseweb="input"] input {
-        border-radius: 8px !important;
-        border: 1px solid #d1d5db !important;
-        padding: 0.38rem 0.55rem !important;
-        font-size: 0.9rem !important;
-    }
-
-    div[data-baseweb="input"] input:focus {
-        outline: none !important;
-        border-color: #111827 !important;
-        box-shadow: 0 0 0 1px #11182733 !important;
-    }
-
-    /* Make the little +/- steppers lighter so they don't look like black pills */
-    div[data-baseweb="input"] > div {
-        background-color: #f9fafb !important;
+    /* Hide Streamlit footer */
+    footer {visibility: hidden;}
+    
+    /* Expander Styling */
+    .streamlit-expanderHeader {
+        background-color: white;
+        border-radius: 6px;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-st.markdown('<div class="main-block">', unsafe_allow_html=True)
+# ---------------------------
+#  UI Structure
+# ---------------------------
 
-# Title centered
-st.markdown('<div class="app-title">Bridge Financing Margin Calculator</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="app-subtitle">'
-    'Quickly see how much of your margin is consumed by short-term bank financing on an invoice.'
-    '</div>',
-    unsafe_allow_html=True,
-)
+# Header
+col_spacer_l, col_main, col_spacer_r = st.columns([1, 10, 1])
 
-# ----------------
-# Inputs in one rectangular card
-# ----------------
+with col_main:
+    st.title("Bridge Financing Calculator")
+    st.markdown('<div class="subtitle">Analyze the impact of short-term financing costs on your deal margins.</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="card input-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Inputs</div>', unsafe_allow_html=True)
+    # ---------------------------
+    #  Inputs Section
+    # ---------------------------
+    # We use an expander or just a container. Let's make it a clean container with a subheader.
+    
+    with st.container():
+        st.markdown("### 🛠 Deal Parameters")
+        st.markdown("---")
+        
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            invoice_amount = st.number_input("Invoice Amount ($)", min_value=0.0, value=10000.0, step=1000.0, format="%.2f")
+            days_outstanding = st.number_input("Days Outstanding", min_value=1, value=60, step=1)
+            
+        with c2:
+            margin_pct = st.number_input("Gross Margin (%)", min_value=0.0, value=25.0, step=0.5, format="%.2f")
+            advance_rate_pct = st.number_input("Advance Rate (%)", min_value=0.0, max_value=100.0, value=80.0, step=1.0, format="%.2f")
+            
+        with c3:
+            annual_interest_rate_pct = st.number_input("Annual Interest Rate (%)", min_value=0.0, value=18.0, step=0.25, format="%.2f")
+            arrangement_fee_pct = st.number_input("Arrangement Fee (%)", min_value=0.0, value=1.0, step=0.1, format="%.2f")
+        
+        # Additional fixed fee in a wider row or just below
+        fixed_fee = st.number_input("Fixed Fees (Legal/Processing $)", min_value=0.0, value=0.0, step=100.0, format="%.2f")
 
-col1, col2, col3 = st.columns(3)
-col4, col5, col6 = st.columns(3)
-
-with col1:
-    invoice_amount = st.number_input(
-        "Invoice amount",
-        min_value=0.0,
-        value=10000.0,
-        step=1000.0,
-        format="%.2f",
-    )
-
-with col2:
-    margin_pct = st.number_input(
-        "Gross margin on invoice (%)",
-        min_value=0.0,
-        value=25.0,
-        step=0.5,
-        format="%.2f",
-    )
-
-with col3:
-    annual_interest_rate_pct = st.number_input(
-        "Annual interest rate charged by bank (%)",
-        min_value=0.0,
-        value=18.0,
-        step=0.25,
-        format="%.2f",
-    )
-
-with col4:
-    days_outstanding = st.number_input(
-        "Days until repayment",
-        min_value=1,
-        value=60,
-        step=1,
-    )
-
-with col5:
-    advance_rate_pct = st.number_input(
-        "Advance rate (% of invoice borrowed)",
-        min_value=0.0,
-        max_value=100.0,
-        value=80.0,
-        step=1.0,
-        format="%.2f",
-    )
-
-with col6:
-    arrangement_fee_pct = st.number_input(
-        "Arrangement fee (% of invoice)",
-        min_value=0.0,
-        value=1.0,
-        step=0.1,
-        format="%.2f",
-    )
-
-st.markdown("")  # spacing
-fixed_fee = st.number_input(
-    "Fixed fees (legal / processing)",
-    min_value=0.0,
-    value=0.0,
-    step=100.0,
-    format="%.2f",
-)
-
-st.markdown('</div>', unsafe_allow_html=True)  # close input card
-
-st.markdown("")  # small gap
-
-# ----------------
-# Calculations & Results
-# ----------------
-
-if invoice_amount <= 0:
-    st.warning("Enter a positive invoice amount to see the financing impact.")
-else:
-    result = calculate_bridge_financing(
-        annual_interest_rate_pct=annual_interest_rate_pct,
-        invoice_amount=invoice_amount,
-        days_outstanding=int(days_outstanding),
-        margin_pct=margin_pct,
-        advance_rate_pct=advance_rate_pct,
-        arrangement_fee_pct=arrangement_fee_pct,
-        fixed_fee=fixed_fee,
-    )
-
-    gross_margin = result["gross_margin_value"]
-    net_margin = result["net_margin_after_financing"]
-    margin_eaten_val = result["margin_eaten_value"]
-    margin_eaten_pct_of_margin = result["margin_eaten_pct_of_margin"]
-    financing_cost_pct_of_invoice = result["financing_cost_pct_of_invoice"]
-    effective_annualized_cost_pct = result["effective_annualized_cost_pct"]
-
-    # ---- Summary in a dark rectangular box ----
-    st.markdown('<div class="summary-wrapper">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title section-title-light">Summary</div>', unsafe_allow_html=True)
-
-    top1, top2, top3 = st.columns(3)
-
-    with top1:
-        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Invoice overview</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="metric-value">{result["invoice_amount"]:,.0f}</div>',
-            unsafe_allow_html=True,
+    st.markdown("---")
+    
+    # ---------------------------
+    #  Calculations
+    # ---------------------------
+    if invoice_amount > 0:
+        result = calculate_bridge_financing(
+            annual_interest_rate_pct, invoice_amount, int(days_outstanding),
+            margin_pct, advance_rate_pct, arrangement_fee_pct, fixed_fee
         )
-        st.markdown(
-            f'<div class="metric-sub">Principal borrowed (advance): {result["principal_borrowed"]:,.0f}</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Extract values for display
+        net_margin = result["net_margin_after_financing"]
+        gross_margin = result["gross_margin_value"]
+        margin_eaten_val = result["margin_eaten_value"]
+        margin_eaten_pct = result["margin_eaten_pct_of_margin"]
+        
+        # ---------------------------
+        #  KPI Dashboard (HTML/CSS)
+        # ---------------------------
+        st.markdown("### 📊 Financial Impact")
+        
+        st.markdown(f"""
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Net Margin (Profit)</div>
+                <div class="metric-value positive">${net_margin:,.0f}</div>
+                <div class="metric-sub">vs ${gross_margin:,.0f} Gross Margin</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Cost of Financing</div>
+                <div class="metric-value negative">${margin_eaten_val:,.0f}</div>
+                <div class="metric-sub">Interest: ${result['interest_cost']:,.0f} | Fees: ${result['total_fees']:,.0f}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Margin Erosion</div>
+                <div class="metric-value negative">{margin_eaten_pct:.1f}%</div>
+                <div class="metric-sub">of your gross margin is gone</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Effective APR</div>
+                <div class="metric-value neutral">{result['effective_annualized_cost_pct']:.2f}%</div>
+                <div class="metric-sub">Annualized cost of capital</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    with top2:
-        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Margin after financing</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="metric-value">{net_margin:,.0f}</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f'<div class="metric-sub">Gross margin before financing: {gross_margin:,.0f}</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        # ---------------------------
+        #  Visuals (Altair)
+        # ---------------------------
+        col_chart, col_data = st.columns([1.5, 1])
 
-    with top3:
-        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Margin eaten by financing</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="metric-value">{margin_eaten_val:,.0f}</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f'<div class="metric-sub">{margin_eaten_pct_of_margin:.1f}% of your margin is lost to financing</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        with col_chart:
+            st.markdown("**Margin Visualization**")
+            
+            # Prepare data for chart
+            chart_data = pd.DataFrame([
+                {"Category": "Gross Margin", "Amount": gross_margin, "Type": "Initial"},
+                {"Category": "Financing Cost", "Amount": margin_eaten_val, "Type": "Cost"},
+                {"Category": "Net Margin", "Amount": net_margin, "Type": "Final"}
+            ])
+            
+            # Create a clean bar chart
+            bar_chart = alt.Chart(chart_data).mark_bar(
+                cornerRadiusTopLeft=6,
+                cornerRadiusTopRight=6,
+                size=50
+            ).encode(
+                x=alt.X('Category', sort=["Gross Margin", "Financing Cost", "Net Margin"], axis=alt.Axis(labelAngle=0, title=None, grid=False)),
+                y=alt.Y('Amount', axis=alt.Axis(format='$,.0f', title=None, grid=True)),
+                color=alt.Color('Type', scale=alt.Scale(domain=['Initial', 'Cost', 'Final'], range=['#9CA3AF', '#EF4444', '#10B981']), legend=None),
+                tooltip=['Category', alt.Tooltip('Amount', format='$,.2f')]
+            ).properties(
+                height=300,
+                background='transparent'
+            ).configure_view(
+                strokeWidth=0
+            ).configure_axis(
+                labelFont='Inter',
+                labelColor='#6B7280',
+                gridColor='#F3F4F6'
+            )
+            
+            st.altair_chart(bar_chart, use_container_width=True)
 
-    st.markdown("")
-    mid1, mid2, mid3 = st.columns(3)
-
-    with mid1:
-        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Financing cost vs invoice</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="metric-value">{financing_cost_pct_of_invoice:.2f}%</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f'<div class="metric-sub">Total financing cost: {result["total_financing_cost"]:,.0f}</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with mid2:
-        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Effective annualized cost</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="metric-value">{effective_annualized_cost_pct:.1f}%</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f'<div class="metric-sub">Based on {int(days_outstanding)} days outstanding</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with mid3:
-        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Interest vs fees split</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="metric-value">{result["interest_cost"]:,.0f} / {result["total_fees"]:,.0f}</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<div class="metric-sub">Interest cost / total fees</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)  # close summary-wrapper
-
-    # ---- Chart with thinner bars & light background ----
-    st.markdown('<div class="section-title">Margin before and after financing</div>', unsafe_allow_html=True)
-
-    margin_df = pd.DataFrame(
-        {
-            "Type": ["Financing cost", "Gross margin (before)", "Net margin (after)"],
-            "Amount": [margin_eaten_val, gross_margin, net_margin],
-        }
-    )
-
-    chart = (
-        alt.Chart(margin_df)
-        .mark_bar(size=35)
-        .encode(
-            x=alt.X("Type:N", axis=alt.Axis(title=None, labelAngle=0)),
-            y=alt.Y("Amount:Q", axis=alt.Axis(title=None)),
-            tooltip=["Type", "Amount"],
-        )
-        .properties(height=260)
-        .configure_view(
-            strokeWidth=0,
-            fill="#f9fafb",
-        )
-        .configure_axis(
-            labelColor="#4b5563",
-            titleColor="#4b5563",
-            grid=True,
-            gridColor="#e5e7eb",
-        )
-    )
-
-    st.altair_chart(chart, use_container_width=True)
-
-    # ---- Detailed table ----
-    with st.expander("Detailed breakdown"):
-        breakdown_df = pd.DataFrame(
-            {
+        with col_data:
+            st.markdown("**Detailed Breakdown**")
+            breakdown_data = {
                 "Metric": [
-                    "Invoice amount",
-                    "Principal borrowed (advance)",
-                    "Gross margin (before financing)",
-                    "Interest cost",
-                    "Total fees (arrangement + fixed)",
-                    "Total financing cost",
-                    "Net margin (after financing)",
-                    "Margin eaten by financing (value)",
-                    "Margin eaten by financing (% of margin)",
-                    "Financing cost (% of invoice)",
-                    "Effective annualized cost (% on invoice)",
+                    "Principal Borrowed", 
+                    "Interest Cost", 
+                    "Arrangement & Fixed Fees", 
+                    "Total Financing Cost",
+                    "Financing % of Invoice"
                 ],
                 "Value": [
-                    f"{result['invoice_amount']:,.2f}",
-                    f"{result['principal_borrowed']:,.2f}",
-                    f"{result['gross_margin_value']:,.2f}",
-                    f"{result['interest_cost']:,.2f}",
-                    f"{result['total_fees']:,.2f}",
-                    f"{result['total_financing_cost']:,.2f}",
-                    f"{result['net_margin_after_financing']:,.2f}",
-                    f"{result['margin_eaten_value']:,.2f}",
-                    f"{result['margin_eaten_pct_of_margin']:.2f} %",
-                    f"{result['financing_cost_pct_of_invoice']:.2f} %",
-                    f"{result['effective_annualized_cost_pct']:.2f} %",
-                ],
+                    f"${result['principal_borrowed']:,.2f}",
+                    f"${result['interest_cost']:,.2f}",
+                    f"${result['total_fees']:,.2f}",
+                    f"${result['total_financing_cost']:,.2f}",
+                    f"{result['financing_cost_pct_of_invoice']:.2f}%"
+                ]
             }
-        )
-        st.dataframe(breakdown_df, use_container_width=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # close main-block
+            df_breakdown = pd.DataFrame(breakdown_data)
+            
+            # Use HTML table for cleaner look than st.dataframe
+            st.markdown(
+                df_breakdown.to_html(index=False, classes="table table-striped", border=0, justify="left"), 
+                unsafe_allow_html=True
+            )
+            # Add simple CSS for this table specifically
+            st.markdown("""
+            <style>
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+            th { text-align: left; color: #6b7280; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+            td { padding: 8px 0; color: #111827; border-bottom: 1px solid #f3f4f6; }
+            tr:last-child td { border-bottom: none; font-weight: 600; }
+            </style>
+            """, unsafe_allow_html=True)
+            
+    else:
+        st.info("Please enter a valid invoice amount to generate calculations.")
