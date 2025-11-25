@@ -15,9 +15,7 @@ def calculate_bridge_financing(
     arrangement_fee_pct: float = 0.0,
     fixed_fee: float = 0.0,
 ) -> dict:
-    """
-    Calculate the economics of bridge financing against an invoice.
-    """
+    """Calculate the economics of bridge financing against an invoice."""
 
     # Convert percents to decimals
     annual_rate = annual_interest_rate_pct / 100.0
@@ -89,7 +87,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# Global styling
+# Global styling – Helvetica, light background, black input text, grey labels
 st.markdown(
     """
     <style>
@@ -99,8 +97,10 @@ st.markdown(
 
     .stApp {
         background: #f3f4f6;
+        color: #111827;
     }
 
+    /* Center main block */
     .main-block {
         max-width: 1150px;
         margin: 0 auto;
@@ -136,6 +136,7 @@ st.markdown(
         color: #d1d5db;
     }
 
+    /* Cards / containers */
     .card {
         padding: 1.4rem 1.5rem 1.1rem 1.5rem;
         border-radius: 14px;
@@ -145,7 +146,7 @@ st.markdown(
     }
 
     .input-card {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.8rem;
     }
 
     .summary-wrapper {
@@ -183,17 +184,22 @@ st.markdown(
         margin-top: 0.25rem;
     }
 
-    /* Numeric inputs */
+    /* Labels – grey */
     label {
         color: #6b7280 !important;
         font-size: 0.85rem !important;
         margin-bottom: 0.15rem !important;
     }
 
+    /* Inputs – white background, BLACK text */
+    input[type="number"], input[type="text"] {
+        color: #111827 !important;
+        background-color: #ffffff !important;
+    }
+
     div[data-baseweb="input"] input {
         border-radius: 8px !important;
         border: 1px solid #d1d5db !important;
-        background-color: #ffffff !important;
         padding: 0.38rem 0.55rem !important;
         font-size: 0.9rem !important;
     }
@@ -202,6 +208,11 @@ st.markdown(
         outline: none !important;
         border-color: #111827 !important;
         box-shadow: 0 0 0 1px #11182733 !important;
+    }
+
+    /* Make the little +/- steppers lighter so they don't look like black pills */
+    div[data-baseweb="input"] > div {
+        background-color: #f9fafb !important;
     }
     </style>
     """,
@@ -220,7 +231,7 @@ st.markdown(
 )
 
 # ----------------
-# Inputs inside one rectangular card
+# Inputs in one rectangular card
 # ----------------
 
 st.markdown('<div class="card input-card">', unsafe_allow_html=True)
@@ -320,7 +331,7 @@ else:
     financing_cost_pct_of_invoice = result["financing_cost_pct_of_invoice"]
     effective_annualized_cost_pct = result["effective_annualized_cost_pct"]
 
-    # ---- Summary in a black box ----
+    # ---- Summary in a dark rectangular box ----
     st.markdown('<div class="summary-wrapper">', unsafe_allow_html=True)
     st.markdown('<div class="section-title section-title-light">Summary</div>', unsafe_allow_html=True)
 
@@ -354,7 +365,7 @@ else:
 
     with top3:
         st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
-        st.markmarkdown('<div class="metric-label">Margin eaten by financing</div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-label">Margin eaten by financing</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{margin_eaten_val:,.0f}</div>',
             unsafe_allow_html=True,
@@ -421,15 +432,13 @@ else:
 
     chart = (
         alt.Chart(margin_df)
-        .mark_bar(size=45)
+        .mark_bar(size=35)
         .encode(
             x=alt.X("Type:N", axis=alt.Axis(title=None, labelAngle=0)),
             y=alt.Y("Amount:Q", axis=alt.Axis(title=None)),
             tooltip=["Type", "Amount"],
         )
-        .properties(
-            height=280,
-        )
+        .properties(height=260)
         .configure_view(
             strokeWidth=0,
             fill="#f9fafb",
