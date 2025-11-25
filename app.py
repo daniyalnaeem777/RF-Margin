@@ -3,6 +3,16 @@ import pandas as pd
 import altair as alt
 
 # ---------------------------
+#  Streamlit Configuration (MUST BE FIRST)
+# ---------------------------
+st.set_page_config(
+    page_title="Bridge Financing Calculator",
+    page_icon="💸",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# ---------------------------
 #  Core Calculation Function
 # ---------------------------
 def calculate_bridge_financing(
@@ -24,7 +34,7 @@ def calculate_bridge_financing(
     principal_borrowed = invoice_amount * advance_rate
     gross_margin_value = invoice_amount * margin_rate
 
-    # If days outstanding is 0, interest cost is 0 to prevent division by zero in annualized cost later
+    # If days outstanding is 0 or less, interest cost is 0
     if days_outstanding <= 0:
         interest_cost = 0.0
     else:
@@ -70,72 +80,69 @@ def calculate_bridge_financing(
 
 
 # ---------------------------
-#  Streamlit Configuration
-# ---------------------------
-st.set_page_config(
-    page_title="Bridge Financing Calculator",
-    page_icon="💸",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# ---------------------------
-#  Aesthetic CSS Styling (Maximized Specificity for Layout Fix)
+#  Aesthetic CSS Styling (NUCLEAR FIX FOR TOP BAR)
 # ---------------------------
 st.markdown(
     """
     <style>
     /* ----------------------------------------------------------------- */
-    /* UNIVERSAL LAYOUT FIX: ELIMINATE THE TOP WHITE BAR/PADDING (EXHAUSTIVE) */
+    /* NUCLEAR LAYOUT FIX: ELIMINATE THE TOP WHITE BAR/PADDING */
     /* ----------------------------------------------------------------- */
     
-    /* 1. Target the top-level app wrapper */
+    /* Global body and html reset */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100%;
+    }
+    
+    /* 1. Target the top-level app wrapper (highest priority) */
     .stApp {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
 
-    /* 2. Target the main content container */
+    /* 2. Target the main content container and eliminate all padding */
     div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
-    /* 3. Target the top-most vertical block container that often holds the padding */
-    div[data-testid="stVerticalBlock"] > div:first-child {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-    }
-
-    /* 4. Target the immediate container holding the title/subtitle */
-    /* This attempts to fix the margin/padding on the very first element block */
-    .stApp > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-    }
-    
-    /* 5. Target the actual padding element Streamlit injects for wide mode (st-emotion-cache-1j0w77l) */
-    /* Note: Streamlit classes change, so we rely more on data-testid, but adding a common class pattern for safety */
+    /* 3. Target the main element block that often controls the top margin/padding for wide layouts */
     .main > div {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
+
+    /* 4. Target the immediate container holding the title/subtitle block */
+    div[data-testid="stVerticalBlock"] > div:first-child {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
     
-    /* 6. Specifically target the header block if it exists (for the Streamlit "hamburger" menu area, though hidden in collapsed state) */
+    /* 5. Target the container immediately surrounding the header block */
+    .block-container:first-child {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
+    /* 6. Target the header element itself */
     header {
         visibility: hidden;
         height: 0;
-        margin-top: 0;
-        padding-top: 0;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
     }
     
-    /* 7. Ensure the entire main section starts at the top */
+    /* 7. Ensure the entire page starts at the top */
     div[data-testid="stFullScreenFrame"] {
         padding-top: 0 !important;
+        margin-top: 0 !important;
     }
     
     /* ----------------------------------------------------------------- */
-    /* THEME & FONT STYLING                                              */
+    /* THEME & FONT STYLING (Rest of the previous styles)                */
     /* ----------------------------------------------------------------- */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
 
@@ -149,10 +156,7 @@ st.markdown(
         color: #1f2937 !important;
     }
     
-    /* ----------------------------------------------------------------- */
-    /* HEADINGS & TEXT STYLING                                           */
-    /* ----------------------------------------------------------------- */
-    
+    /* HEADINGS & TEXT STYLING */
     h1 {
         font-weight: 900;
         letter-spacing: -0.02em;
@@ -179,9 +183,7 @@ st.markdown(
         font-weight: 400 !important;
     }
     
-    /* ----------------------------------------------------------------- */
-    /* INPUT BOX STYLING                                                 */
-    /* ----------------------------------------------------------------- */
+    /* INPUT BOX STYLING */
     .input-section-container {
         background-color: #ffffff;
         border: 1px solid #e5e7eb;
@@ -191,13 +193,11 @@ st.markdown(
         margin-bottom: 2rem;
     }
 
-    /* Force Widget Labels to be bold and black */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
         color: #111827 !important;
         font-weight: 700 !important;
     }
 
-    /* Target input fields */
     div[data-baseweb="input"] {
         background-color: #ffffff !important;
         color: #111827 !important;
@@ -206,7 +206,6 @@ st.markdown(
         border: 1px solid #d1d5db !important;
     }
     
-    /* Specific fix for the input text itself */
     input[type="number"], input[type="text"] {
         color: #111827 !important;
         -webkit-text-fill-color: #111827 !important;
@@ -214,22 +213,16 @@ st.markdown(
         background-color: #ffffff !important;
     }
 
-    /* Hide the +/- (Step) Buttons on Number Inputs */
     div[data-testid="stNumberInput"] button {
         display: none !important;
     }
     
-    /* Focus State */
     div[data-baseweb="input"]:focus-within {
         border-color: #2563eb !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     }
 
-    /* ----------------------------------------------------------------- */
-    /* OUTPUT CARD STYLING                                               */
-    /* ----------------------------------------------------------------- */
-
-    /* Style the bordered containers (st.container(border=True)) to be white cards */
+    /* OUTPUT CARD STYLING */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #ffffff !important;
         border-radius: 10px;
@@ -238,7 +231,6 @@ st.markdown(
         padding: 1.5rem;
     }
     
-    /* Metrics Box Styling (CSS Grid) */
     .metrics-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -255,7 +247,6 @@ st.markdown(
         transition: transform 0.2s ease;
     }
     
-    /* Metric Text Overrides for Clarity */
     .metric-label {
         font-size: 0.85rem;
         font-weight: 500;
@@ -276,7 +267,6 @@ st.markdown(
         font-weight: 400;
     }
 
-    /* Utility Colors */
     .negative { color: #ef4444 !important; }
     .positive { color: #10b981 !important; }
     .neutral { color: #3b82f6 !important; }
@@ -304,6 +294,9 @@ col_spacer_l, col_main, col_spacer_r = st.columns([0.5, 10, 0.5])
 
 with col_main:
     # Header
+    # Added a utility div around the main content for another layer of reset
+    st.markdown('<div class="app-content-wrapper">', unsafe_allow_html=True) 
+    
     st.title("Bridge Financing Calculator")
     st.markdown('<div class="subtitle">Analyze the impact of short-term financing costs on your deal margins.</div>', unsafe_allow_html=True)
 
@@ -454,3 +447,5 @@ with col_main:
             
     else:
         st.info("Please enter a valid invoice amount to generate calculations.")
+        
+    st.markdown('</div>', unsafe_allow_html=True) # Closing the app-content-wrapper div
