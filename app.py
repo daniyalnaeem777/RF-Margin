@@ -24,7 +24,11 @@ def calculate_bridge_financing(
     principal_borrowed = invoice_amount * advance_rate
     gross_margin_value = invoice_amount * margin_rate
 
-    interest_cost = principal_borrowed * annual_rate * (days_outstanding / 365.0)
+    # If days outstanding is 0, interest cost is 0 to prevent division by zero in annualized cost later
+    if days_outstanding <= 0:
+        interest_cost = 0.0
+    else:
+        interest_cost = principal_borrowed * annual_rate * (days_outstanding / 365.0)
 
     arrangement_fee_value = invoice_amount * arrangement_fee_rate
     total_fees = arrangement_fee_value + fixed_fee
@@ -76,26 +80,67 @@ st.set_page_config(
 )
 
 # ---------------------------
-#  Aesthetic CSS Styling (Added CSS to hide the empty block)
+#  Aesthetic CSS Styling (Maximized Specificity for Layout Fix)
 # ---------------------------
 st.markdown(
     """
     <style>
-    /* Import modern font equivalent to Helvetica for web */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-
-    html, body, [class*="css"] {
-        /* Using a safe stack starting with Arial/Helvetica */
-        font-family: Arial, Helvetica, 'Roboto', sans-serif !important;
+    /* ----------------------------------------------------------------- */
+    /* UNIVERSAL LAYOUT FIX: ELIMINATE THE TOP WHITE BAR/PADDING (EXHAUSTIVE) */
+    /* ----------------------------------------------------------------- */
+    
+    /* 1. Target the top-level app wrapper */
+    .stApp {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
     }
 
-    /* 1. THEME OVERRIDE: Force Light Mode appearance for consistency */
-    :root {
-        --primary-color: #2563eb;
-        --background-color: #f8f9fa;
-        --secondary-background-color: #ffffff;
-        --text-color: #1f2937;
-        --font: Arial, Helvetica, 'Roboto', sans-serif;
+    /* 2. Target the main content container */
+    div[data-testid="stAppViewBlockContainer"] {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
+    /* 3. Target the top-most vertical block container that often holds the padding */
+    div[data-testid="stVerticalBlock"] > div:first-child {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    /* 4. Target the immediate container holding the title/subtitle */
+    /* This attempts to fix the margin/padding on the very first element block */
+    .stApp > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
+    /* 5. Target the actual padding element Streamlit injects for wide mode (st-emotion-cache-1j0w77l) */
+    /* Note: Streamlit classes change, so we rely more on data-testid, but adding a common class pattern for safety */
+    .main > div {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
+    /* 6. Specifically target the header block if it exists (for the Streamlit "hamburger" menu area, though hidden in collapsed state) */
+    header {
+        visibility: hidden;
+        height: 0;
+        margin-top: 0;
+        padding-top: 0;
+    }
+    
+    /* 7. Ensure the entire main section starts at the top */
+    div[data-testid="stFullScreenFrame"] {
+        padding-top: 0 !important;
+    }
+    
+    /* ----------------------------------------------------------------- */
+    /* THEME & FONT STYLING                                              */
+    /* ----------------------------------------------------------------- */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Roboto', Arial, Helvetica, sans-serif !important;
     }
 
     /* Background and global spacing */
@@ -105,38 +150,21 @@ st.markdown(
     }
     
     /* ----------------------------------------------------------------- */
-    /* GLITCH FIX: HIDE THE EMPTY WHITE BAR (More Aggressive Targeting)  */
-    /* ----------------------------------------------------------------- */
-    
-    /* Target the main app view block and remove its padding. */
-    div[data-testid="stAppViewBlockContainer"] {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-    
-    /* Target the container above the title/subtitle and remove its padding/margin. */
-    /* This is often the culprit for the large empty space at the very top. */
-    .stApp > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-    }
-
-    /* ----------------------------------------------------------------- */
-    /* HEADINGS & TEXT STYLING (BOLD HEADINGS)                           */
+    /* HEADINGS & TEXT STYLING                                           */
     /* ----------------------------------------------------------------- */
     
     h1 {
-        font-weight: 900; /* Super bold for main title */
+        font-weight: 900;
         letter-spacing: -0.02em;
         color: #111827 !important;
         margin-bottom: 0.5rem;
     }
     
     h3 {
-        font-weight: 700; /* Bold for section titles */
+        font-weight: 700;
         color: #111827 !important;
-        font-size: 1.25rem; /* Slightly larger */
-        margin-top: 1.5rem; /* Add margin above to space out sections */
+        font-size: 1.25rem;
+        margin-top: 1.5rem;
         margin-bottom: 0.5rem;
     }
     
@@ -146,40 +174,36 @@ st.markdown(
         margin-bottom: 2rem;
     }
     
-    /* General Text Color Force */
     p, li, span, div[data-testid="stWidgetLabel"] p, label {
-        color: #111827 !important; /* Ensure all text is dark */
+        color: #111827 !important;
         font-weight: 400 !important;
     }
     
     /* ----------------------------------------------------------------- */
-    /* INPUT BOX STYLING (FORCE WHITE BOXES)                             */
+    /* INPUT BOX STYLING                                                 */
     /* ----------------------------------------------------------------- */
-    
-    /* Target the container around the Input fields to apply a rectangular border */
     .input-section-container {
         background-color: #ffffff;
-        border: 1px solid #e5e7eb; /* Light gray border */
+        border: 1px solid #e5e7eb;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 20px 20px 30px 20px; /* Padding for the box */
+        padding: 20px 20px 30px 20px;
         margin-bottom: 2rem;
     }
 
     /* Force Widget Labels to be bold and black */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
         color: #111827 !important;
-        font-weight: 700 !important; /* Bold labels */
+        font-weight: 700 !important;
     }
 
-    /* Target EVERY layer of the input box structure. */
-    div[data-baseweb="input"], 
-    div[data-baseweb="base-input"], 
-    .stTextInput div, 
-    .stNumberInput div {
+    /* Target input fields */
+    div[data-baseweb="input"] {
         background-color: #ffffff !important;
         color: #111827 !important;
         border-color: #d1d5db;
+        border-radius: 6px !important;
+        border: 1px solid #d1d5db !important;
     }
     
     /* Specific fix for the input text itself */
@@ -190,25 +214,19 @@ st.markdown(
         background-color: #ffffff !important;
     }
 
-    /* Border Radius fix for the container */
-    div[data-baseweb="input"] {
-        border-radius: 6px !important;
-        border: 1px solid #d1d5db !important;
-    }
-
     /* Hide the +/- (Step) Buttons on Number Inputs */
     div[data-testid="stNumberInput"] button {
         display: none !important;
     }
     
-    /* Focus State - Blue Ring */
+    /* Focus State */
     div[data-baseweb="input"]:focus-within {
         border-color: #2563eb !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     }
 
     /* ----------------------------------------------------------------- */
-    /* OUTPUT CARD STYLING (Margin Visualization & Detailed Breakdown)   */
+    /* OUTPUT CARD STYLING                                               */
     /* ----------------------------------------------------------------- */
 
     /* Style the bordered containers (st.container(border=True)) to be white cards */
@@ -236,6 +254,27 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         transition: transform 0.2s ease;
     }
+    
+    /* Metric Text Overrides for Clarity */
+    .metric-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+    }
+    
+    .metric-sub {
+        font-size: 0.9rem;
+        color: #9ca3af;
+        font-weight: 400;
+    }
 
     /* Utility Colors */
     .negative { color: #ef4444 !important; }
@@ -259,27 +298,25 @@ st.markdown(
 #  UI Structure
 # ---------------------------
 
-# Header
-col_spacer_l, col_main, col_spacer_r = st.columns([1, 10, 1])
+# Use st.container to wrap the entire main content to potentially help with layout control
+# The column structure below ensures the content is centered and wide.
+col_spacer_l, col_main, col_spacer_r = st.columns([0.5, 10, 0.5])
 
 with col_main:
+    # Header
     st.title("Bridge Financing Calculator")
     st.markdown('<div class="subtitle">Analyze the impact of short-term financing costs on your deal margins.</div>', unsafe_allow_html=True)
 
     # ---------------------------
-    #  Inputs Section (Now enclosed in a styled container)
+    #  Inputs Section
     # ---------------------------
     
-    # Use a custom div to apply the rectangular border/card style via CSS
     st.markdown('<div class="input-section-container">', unsafe_allow_html=True)
     
-    # Add an explicit header and spacing inside the bordered container
     st.markdown("### 🛠 Deal Parameters")
     
-    # Add a small separator line for professionalism
     st.markdown("---")
     
-    # Add vertical space before parameters start (bringing them down)
     st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
     
     # Input Widgets
@@ -297,13 +334,13 @@ with col_main:
         arrangement_fee_pct = st.number_input("Arrangement Fee (%)", min_value=0.0, value=1.0, step=0.1, format="%.2f")
     
     # Additional fixed fee
-    st.markdown('<div style="margin-top: 15px;"></div>', unsafe_allow_html=True) # Adding a bit of space
+    st.markdown('<div style="margin-top: 15px;"></div>', unsafe_allow_html=True) 
     fixed_fee = st.number_input("Fixed Fees (Legal/Processing $)", min_value=0.0, value=0.0, step=100.0, format="%.2f")
 
     st.markdown('</div>', unsafe_allow_html=True) # Closing the custom input-section-container
 
     # ---------------------------
-    #  Calculations
+    #  Calculations and Output
     # ---------------------------
     if invoice_amount > 0:
         result = calculate_bridge_financing(
@@ -380,7 +417,7 @@ with col_main:
                 ).configure_view(
                     strokeWidth=0
                 ).configure_axis(
-                    labelFont='Arial, Helvetica, sans-serif',
+                    labelFont='Roboto, Arial, sans-serif',
                     labelColor='#6B7280',
                     gridColor='#F3F4F6'
                 )
