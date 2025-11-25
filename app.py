@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 
 # ---------------------------
 #  Core Calculation Function
@@ -88,7 +89,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# Global styling: Helvetica, clean layout, rectangular inputs
+# Global styling
 st.markdown(
     """
     <style>
@@ -97,21 +98,28 @@ st.markdown(
     }
 
     .stApp {
-        background: #f5f5f7;
+        background: #f3f4f6;
     }
 
     .main-block {
         max-width: 1150px;
         margin: 0 auto;
+        padding-bottom: 3rem;
     }
 
-    h1, h2, h3 {
-        color: #111827 !important;
+    .app-title {
+        text-align: center;
+        font-size: 2.2rem;
+        font-weight: 650;
+        color: #111827;
+        margin-top: 1.5rem;
+        margin-bottom: 0.4rem;
     }
 
-    .subtitle {
+    .app-subtitle {
+        text-align: center;
         color: #4b5563;
-        font-size: 0.95rem;
+        font-size: 0.96rem;
         margin-bottom: 1.5rem;
     }
 
@@ -120,44 +128,73 @@ st.markdown(
         text-transform: uppercase;
         letter-spacing: 0.12em;
         color: #6b7280;
-        margin-bottom: 0.75rem;
-        margin-top: 0.75rem;
+        margin-bottom: 0.85rem;
+        margin-top: 0.4rem;
+    }
+
+    .section-title-light {
+        color: #d1d5db;
     }
 
     .card {
-        padding: 1.2rem 1.4rem;
-        border-radius: 10px;
+        padding: 1.4rem 1.5rem 1.1rem 1.5rem;
+        border-radius: 14px;
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+    }
+
+    .input-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-wrapper {
+        border-radius: 16px;
+        padding: 1.6rem 1.5rem 1.4rem 1.5rem;
+        background: #111827;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+        margin-bottom: 2rem;
+    }
+
+    .summary-inner-card {
+        padding: 1.1rem 1.2rem;
+        border-radius: 12px;
+        border: 1px solid #374151;
+        background: #111827;
     }
 
     .metric-label {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: #6b7280;
-        margin-bottom: 0.25rem;
+        color: #9ca3af;
+        margin-bottom: 0.2rem;
     }
 
     .metric-value {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #111827;
+        color: #f9fafb;
     }
 
     .metric-sub {
-        font-size: 0.85rem;
-        color: #6b7280;
+        font-size: 0.84rem;
+        color: #9ca3af;
         margin-top: 0.25rem;
     }
 
-    /* Style numeric inputs */
+    /* Numeric inputs */
+    label {
+        color: #6b7280 !important;
+        font-size: 0.85rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+
     div[data-baseweb="input"] input {
-        border-radius: 6px !important;
+        border-radius: 8px !important;
         border: 1px solid #d1d5db !important;
         background-color: #ffffff !important;
-        padding: 0.35rem 0.5rem !important;
+        padding: 0.38rem 0.55rem !important;
         font-size: 0.9rem !important;
     }
 
@@ -173,18 +210,20 @@ st.markdown(
 
 st.markdown('<div class="main-block">', unsafe_allow_html=True)
 
-st.title("Bridge Financing Margin Calculator")
+# Title centered
+st.markdown('<div class="app-title">Bridge Financing Margin Calculator</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="subtitle">'
+    '<div class="app-subtitle">'
     'Quickly see how much of your margin is consumed by short-term bank financing on an invoice.'
     '</div>',
     unsafe_allow_html=True,
 )
 
 # ----------------
-# Inputs (all on one page, numeric only)
+# Inputs inside one rectangular card
 # ----------------
 
+st.markdown('<div class="card input-card">', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Inputs</div>', unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
@@ -244,8 +283,7 @@ with col6:
         format="%.2f",
     )
 
-st.markdown("")  # small spacing line
-
+st.markdown("")  # spacing
 fixed_fee = st.number_input(
     "Fixed fees (legal / processing)",
     min_value=0.0,
@@ -254,7 +292,9 @@ fixed_fee = st.number_input(
     format="%.2f",
 )
 
-st.markdown("---")
+st.markdown('</div>', unsafe_allow_html=True)  # close input card
+
+st.markdown("")  # small gap
 
 # ----------------
 # Calculations & Results
@@ -280,12 +320,14 @@ else:
     financing_cost_pct_of_invoice = result["financing_cost_pct_of_invoice"]
     effective_annualized_cost_pct = result["effective_annualized_cost_pct"]
 
-    st.markdown('<div class="section-title">Summary</div>', unsafe_allow_html=True)
+    # ---- Summary in a black box ----
+    st.markdown('<div class="summary-wrapper">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title section-title-light">Summary</div>', unsafe_allow_html=True)
 
     top1, top2, top3 = st.columns(3)
 
     with top1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
         st.markdown('<div class="metric-label">Invoice overview</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{result["invoice_amount"]:,.0f}</div>',
@@ -298,7 +340,7 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with top2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
         st.markdown('<div class="metric-label">Margin after financing</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{net_margin:,.0f}</div>',
@@ -311,8 +353,8 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with top3:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Margin eaten by financing</div>', unsafe_allow_html=True)
+        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
+        st.markmarkdown('<div class="metric-label">Margin eaten by financing</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{margin_eaten_val:,.0f}</div>',
             unsafe_allow_html=True,
@@ -327,7 +369,7 @@ else:
     mid1, mid2, mid3 = st.columns(3)
 
     with mid1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
         st.markdown('<div class="metric-label">Financing cost vs invoice</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{financing_cost_pct_of_invoice:.2f}%</div>',
@@ -340,7 +382,7 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with mid2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
         st.markdown('<div class="metric-label">Effective annualized cost</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{effective_annualized_cost_pct:.1f}%</div>',
@@ -353,7 +395,7 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with mid3:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="summary-inner-card">', unsafe_allow_html=True)
         st.markdown('<div class="metric-label">Interest vs fees split</div>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-value">{result["interest_cost"]:,.0f} / {result["total_fees"]:,.0f}</div>',
@@ -365,18 +407,44 @@ else:
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("")
+    st.markdown('</div>', unsafe_allow_html=True)  # close summary-wrapper
+
+    # ---- Chart with thinner bars & light background ----
     st.markdown('<div class="section-title">Margin before and after financing</div>', unsafe_allow_html=True)
 
     margin_df = pd.DataFrame(
         {
-            "Type": ["Gross margin (before)", "Net margin (after)", "Financing cost"],
-            "Amount": [gross_margin, net_margin, margin_eaten_val],
+            "Type": ["Financing cost", "Gross margin (before)", "Net margin (after)"],
+            "Amount": [margin_eaten_val, gross_margin, net_margin],
         }
-    ).set_index("Type")
+    )
 
-    st.bar_chart(margin_df)
+    chart = (
+        alt.Chart(margin_df)
+        .mark_bar(size=45)
+        .encode(
+            x=alt.X("Type:N", axis=alt.Axis(title=None, labelAngle=0)),
+            y=alt.Y("Amount:Q", axis=alt.Axis(title=None)),
+            tooltip=["Type", "Amount"],
+        )
+        .properties(
+            height=280,
+        )
+        .configure_view(
+            strokeWidth=0,
+            fill="#f9fafb",
+        )
+        .configure_axis(
+            labelColor="#4b5563",
+            titleColor="#4b5563",
+            grid=True,
+            gridColor="#e5e7eb",
+        )
+    )
 
+    st.altair_chart(chart, use_container_width=True)
+
+    # ---- Detailed table ----
     with st.expander("Detailed breakdown"):
         breakdown_df = pd.DataFrame(
             {
@@ -410,4 +478,4 @@ else:
         )
         st.dataframe(breakdown_df, use_container_width=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)  # close main-block
