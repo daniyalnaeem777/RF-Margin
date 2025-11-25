@@ -94,20 +94,68 @@ st.markdown(
         color: #1f2937;
     }
     
-    /* CRITICAL FIX: Force all Widget Labels to be black.
-       This overrides Streamlit's Dark Mode default which makes them white.
-    */
+    /* ----------------------------------------------------------------- */
+    /* WIDGET STYLING (WHITE BOXES + NO BUTTONS)        */
+    /* ----------------------------------------------------------------- */
+    
+    /* 1. Force Widget Labels to be black (overrides dark mode) */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
         color: #111827 !important;
         font-weight: 500 !important;
     }
 
+    /* 2. Target the Input Container (BaseWeb) -> Make it WHITE */
+    div[data-baseweb="input"] {
+        background-color: #ffffff !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 8px !important;
+        color: #111827 !important;
+    }
+    
+    /* 3. Target the inner text input -> Force Black Text & White BG */
+    div[data-baseweb="input"] input {
+        color: #111827 !important;
+        background-color: transparent !important; /* Parent handles white bg */
+        caret-color: #111827 !important; /* Cursor color */
+    }
+
+    /* 4. Hide the +/- (Step) Buttons on Number Inputs */
+    div[data-testid="stNumberInput"] button {
+        display: none !important;
+    }
+    
+    /* 5. Add a Focus Ring for aesthetics when clicking the box */
+    div[data-baseweb="input"]:focus-within {
+        border-color: #2563eb !important; /* Blue-600 */
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    }
+
+    /* ----------------------------------------------------------------- */
+    /* CONTAINER / CARD STYLING                                         */
+    /* ----------------------------------------------------------------- */
+
+    /* Style the bordered containers (st.container(border=True)) to be white cards */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+    }
+    
     /* Titles */
     h1 {
         font-weight: 700;
         letter-spacing: -0.02em;
         color: #111827 !important;
         margin-bottom: 0.5rem;
+    }
+    
+    h3 {
+        font-weight: 600;
+        color: #111827 !important;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
     }
     
     .subtitle {
@@ -121,28 +169,6 @@ st.markdown(
         color: #374151;
     }
 
-    /* Custom Cards for Inputs */
-    .input-container {
-        background-color: #ffffff;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        border: 1px solid #e5e7eb;
-        margin-bottom: 2rem;
-    }
-
-    /* Input Fields Styling - Force White Background/Dark Text */
-    div[data-baseweb="input"] {
-        border-radius: 6px;
-        border: 1px solid #d1d5db;
-        background-color: #ffffff !important;
-    }
-    
-    div[data-baseweb="input"] input {
-        color: #111827 !important;
-        background-color: transparent !important;
-    }
-    
     /* Remove the top colored bar from streamlit */
     header[data-testid="stHeader"] {
         background-color: rgba(0,0,0,0);
@@ -223,7 +249,6 @@ with col_main:
     # ---------------------------
     #  Inputs Section
     # ---------------------------
-    # We use an expander or just a container. Let's make it a clean container with a subheader.
     
     with st.container():
         st.markdown("### 🛠 Deal Parameters")
@@ -293,77 +318,82 @@ with col_main:
         """, unsafe_allow_html=True)
 
         # ---------------------------
-        #  Visuals (Altair)
+        #  Visuals (Altair) & Table
         # ---------------------------
+        # We use st.container(border=True) to create the box effect
+        # The CSS targets div[data-testid="stVerticalBlockBorderWrapper"] to make it white and shadowed
+        
         col_chart, col_data = st.columns([1.5, 1])
 
         with col_chart:
-            st.markdown("**Margin Visualization**")
-            
-            # Prepare data for chart
-            chart_data = pd.DataFrame([
-                {"Category": "Gross Margin", "Amount": gross_margin, "Type": "Initial"},
-                {"Category": "Financing Cost", "Amount": margin_eaten_val, "Type": "Cost"},
-                {"Category": "Net Margin", "Amount": net_margin, "Type": "Final"}
-            ])
-            
-            # Create a clean bar chart
-            bar_chart = alt.Chart(chart_data).mark_bar(
-                cornerRadiusTopLeft=6,
-                cornerRadiusTopRight=6,
-                size=50
-            ).encode(
-                x=alt.X('Category', sort=["Gross Margin", "Financing Cost", "Net Margin"], axis=alt.Axis(labelAngle=0, title=None, grid=False)),
-                y=alt.Y('Amount', axis=alt.Axis(format='$,.0f', title=None, grid=True)),
-                color=alt.Color('Type', scale=alt.Scale(domain=['Initial', 'Cost', 'Final'], range=['#9CA3AF', '#EF4444', '#10B981']), legend=None),
-                tooltip=['Category', alt.Tooltip('Amount', format='$,.2f')]
-            ).properties(
-                height=300,
-                background='transparent'
-            ).configure_view(
-                strokeWidth=0
-            ).configure_axis(
-                labelFont='Inter',
-                labelColor='#6B7280',
-                gridColor='#F3F4F6'
-            )
-            
-            st.altair_chart(bar_chart, use_container_width=True)
+            with st.container(border=True):
+                st.markdown("### Margin Visualization")
+                
+                # Prepare data for chart
+                chart_data = pd.DataFrame([
+                    {"Category": "Gross Margin", "Amount": gross_margin, "Type": "Initial"},
+                    {"Category": "Financing Cost", "Amount": margin_eaten_val, "Type": "Cost"},
+                    {"Category": "Net Margin", "Amount": net_margin, "Type": "Final"}
+                ])
+                
+                # Create a clean bar chart
+                bar_chart = alt.Chart(chart_data).mark_bar(
+                    cornerRadiusTopLeft=6,
+                    cornerRadiusTopRight=6,
+                    size=50
+                ).encode(
+                    x=alt.X('Category', sort=["Gross Margin", "Financing Cost", "Net Margin"], axis=alt.Axis(labelAngle=0, title=None, grid=False)),
+                    y=alt.Y('Amount', axis=alt.Axis(format='$,.0f', title=None, grid=True)),
+                    color=alt.Color('Type', scale=alt.Scale(domain=['Initial', 'Cost', 'Final'], range=['#9CA3AF', '#EF4444', '#10B981']), legend=None),
+                    tooltip=['Category', alt.Tooltip('Amount', format='$,.2f')]
+                ).properties(
+                    height=320,
+                    background='transparent'
+                ).configure_view(
+                    strokeWidth=0
+                ).configure_axis(
+                    labelFont='Inter',
+                    labelColor='#6B7280',
+                    gridColor='#F3F4F6'
+                )
+                
+                st.altair_chart(bar_chart, use_container_width=True)
 
         with col_data:
-            st.markdown("**Detailed Breakdown**")
-            breakdown_data = {
-                "Metric": [
-                    "Principal Borrowed", 
-                    "Interest Cost", 
-                    "Arrangement & Fixed Fees", 
-                    "Total Financing Cost",
-                    "Financing % of Invoice"
-                ],
-                "Value": [
-                    f"${result['principal_borrowed']:,.2f}",
-                    f"${result['interest_cost']:,.2f}",
-                    f"${result['total_fees']:,.2f}",
-                    f"${result['total_financing_cost']:,.2f}",
-                    f"{result['financing_cost_pct_of_invoice']:.2f}%"
-                ]
-            }
-            df_breakdown = pd.DataFrame(breakdown_data)
-            
-            # Use HTML table for cleaner look than st.dataframe
-            st.markdown(
-                df_breakdown.to_html(index=False, classes="table table-striped", border=0, justify="left"), 
-                unsafe_allow_html=True
-            )
-            # Add simple CSS for this table specifically
-            st.markdown("""
-            <style>
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-            th { text-align: left; color: #6b7280 !important; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-            td { padding: 8px 0; color: #111827 !important; border-bottom: 1px solid #f3f4f6; }
-            tr:last-child td { border-bottom: none; font-weight: 600; }
-            </style>
-            """, unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown("### Detailed Breakdown")
+                breakdown_data = {
+                    "Metric": [
+                        "Principal Borrowed", 
+                        "Interest Cost", 
+                        "Arrangement & Fixed Fees", 
+                        "Total Financing Cost",
+                        "Financing % of Invoice"
+                    ],
+                    "Value": [
+                        f"${result['principal_borrowed']:,.2f}",
+                        f"${result['interest_cost']:,.2f}",
+                        f"${result['total_fees']:,.2f}",
+                        f"${result['total_financing_cost']:,.2f}",
+                        f"{result['financing_cost_pct_of_invoice']:.2f}%"
+                    ]
+                }
+                df_breakdown = pd.DataFrame(breakdown_data)
+                
+                # Use HTML table for cleaner look than st.dataframe
+                st.markdown(
+                    df_breakdown.to_html(index=False, classes="table table-striped", border=0, justify="left"), 
+                    unsafe_allow_html=True
+                )
+                # Add simple CSS for this table specifically
+                st.markdown("""
+                <style>
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+                th { text-align: left; color: #6b7280 !important; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+                td { padding: 8px 0; color: #111827 !important; border-bottom: 1px solid #f3f4f6; }
+                tr:last-child td { border-bottom: none; font-weight: 600; }
+                </style>
+                """, unsafe_allow_html=True)
             
     else:
         st.info("Please enter a valid invoice amount to generate calculations.")
