@@ -76,28 +76,26 @@ st.set_page_config(
 )
 
 # ---------------------------
-#  Aesthetic CSS Styling (NUCLEAR OPTION)
+#  Aesthetic CSS Styling (Updated for Helvetica, Bold Headings, and Input Box Border)
 # ---------------------------
 st.markdown(
     """
     <style>
-    /* Import modern font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    /* Import modern font equivalent to Helvetica for web */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
 
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        /* Using a safe stack starting with Arial/Helvetica */
+        font-family: Arial, Helvetica, 'Roboto', sans-serif !important;
     }
 
-    /* 1. THEME OVERRIDE 
-       Force the CSS variables to Light Mode values regardless of system settings.
-       This fixes the "dark background" leak.
-    */
+    /* 1. THEME OVERRIDE: Force Light Mode appearance for consistency */
     :root {
         --primary-color: #2563eb;
         --background-color: #f8f9fa;
         --secondary-background-color: #ffffff;
         --text-color: #1f2937;
-        --font: "Inter", sans-serif;
+        --font: Arial, Helvetica, 'Roboto', sans-serif;
     }
 
     /* Background and global spacing */
@@ -107,25 +105,64 @@ st.markdown(
     }
     
     /* ----------------------------------------------------------------- */
-    /* WIDGET STYLING (FORCE WHITE BOXES + BLACK TEXT)                   */
+    /* HEADINGS & TEXT STYLING (BOLD HEADINGS)                           */
     /* ----------------------------------------------------------------- */
     
-    /* Force Widget Labels to be black */
-    div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
+    h1 {
+        font-weight: 900; /* Super bold for main title */
+        letter-spacing: -0.02em;
         color: #111827 !important;
-        font-weight: 500 !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    h3 {
+        font-weight: 700; /* Bold for section titles */
+        color: #111827 !important;
+        font-size: 1.25rem; /* Slightly larger */
+        margin-top: 1.5rem; /* Add margin above to space out sections */
+        margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin-bottom: 2rem;
+    }
+    
+    /* General Text Color Force */
+    p, li, span, div[data-testid="stWidgetLabel"] p, label {
+        color: #111827 !important; /* Ensure all text is dark */
+        font-weight: 400 !important;
+    }
+    
+    /* ----------------------------------------------------------------- */
+    /* INPUT BOX STYLING (FORCE WHITE BOXES)                             */
+    /* ----------------------------------------------------------------- */
+    
+    /* Target the container around the Input fields to apply a rectangular border */
+    .input-section-container {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb; /* Light gray border */
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 20px 20px 30px 20px; /* Padding for the box */
+        margin-bottom: 2rem;
     }
 
-    /* Target EVERY layer of the input box structure.
-       Streamlit inputs are nested divs. We must hit them all to ensure white bg.
-    */
+    /* Force Widget Labels to be bold and black */
+    div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
+        color: #111827 !important;
+        font-weight: 700 !important; /* Bold labels */
+    }
+
+    /* Target EVERY layer of the input box structure. */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
     .stTextInput div, 
     .stNumberInput div {
         background-color: #ffffff !important;
         color: #111827 !important;
-        border-color: #d1d5db; /* Default border */
+        border-color: #d1d5db;
     }
     
     /* Specific fix for the input text itself */
@@ -138,7 +175,7 @@ st.markdown(
 
     /* Border Radius fix for the container */
     div[data-baseweb="input"] {
-        border-radius: 8px !important;
+        border-radius: 6px !important;
         border: 1px solid #d1d5db !important;
     }
 
@@ -154,7 +191,7 @@ st.markdown(
     }
 
     /* ----------------------------------------------------------------- */
-    /* CONTAINER / CARD STYLING                                         */
+    /* OUTPUT CARD STYLING (Margin Visualization & Detailed Breakdown)   */
     /* ----------------------------------------------------------------- */
 
     /* Style the bordered containers (st.container(border=True)) to be white cards */
@@ -164,37 +201,6 @@ st.markdown(
         border: 1px solid #e5e7eb !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         padding: 1.5rem;
-    }
-    
-    /* Titles */
-    h1 {
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: #111827 !important;
-        margin-bottom: 0.5rem;
-    }
-    
-    h3 {
-        font-weight: 600;
-        color: #111827 !important;
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .subtitle {
-        font-size: 1.1rem;
-        color: #6b7280;
-        margin-bottom: 2rem;
-    }
-    
-    /* General Text Color Force */
-    p, li, span {
-        color: #374151 !important;
-    }
-
-    /* Remove the top colored bar from streamlit */
-    header[data-testid="stHeader"] {
-        background-color: rgba(0,0,0,0);
     }
     
     /* Metrics Box Styling (CSS Grid) */
@@ -214,32 +220,7 @@ st.markdown(
         transition: transform 0.2s ease;
     }
 
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-    }
-
-    .metric-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #6b7280 !important;
-        margin-bottom: 0.5rem;
-    }
-
-    .metric-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #111827 !important;
-    }
-
-    .metric-sub {
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
-        color: #4b5563 !important;
-    }
-    
+    /* Utility Colors */
     .negative { color: #ef4444 !important; }
     .positive { color: #10b981 !important; }
     .neutral { color: #3b82f6 !important; }
@@ -247,19 +228,11 @@ st.markdown(
     /* Hide Streamlit footer */
     footer {visibility: hidden;}
     
-    /* Expander Styling */
-    .streamlit-expanderHeader {
-        background-color: white !important;
-        border-radius: 6px;
-        color: #111827 !important;
-    }
-    
-    /* Force Tooltips in Altair to be readable */
-    #vg-tooltip-element {
-        color: #333 !important;
-        background: white !important;
-        border: 1px solid #ccc !important;
-    }
+    /* Table styling for breakdown */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th { text-align: left; color: #6b7280 !important; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+    td { padding: 8px 0; color: #111827 !important; border-bottom: 1px solid #f3f4f6; }
+    tr:last-child td { border-bottom: none; font-weight: 600; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -277,30 +250,43 @@ with col_main:
     st.markdown('<div class="subtitle">Analyze the impact of short-term financing costs on your deal margins.</div>', unsafe_allow_html=True)
 
     # ---------------------------
-    #  Inputs Section
+    #  Inputs Section (Now enclosed in a styled container)
     # ---------------------------
     
-    with st.container():
-        st.markdown("### 🛠 Deal Parameters")
-        st.markdown("---")
-        
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            invoice_amount = st.number_input("Invoice Amount ($)", min_value=0.0, value=10000.0, step=1000.0, format="%.2f")
-            days_outstanding = st.number_input("Days Outstanding", min_value=1, value=60, step=1)
-            
-        with c2:
-            margin_pct = st.number_input("Gross Margin (%)", min_value=0.0, value=25.0, step=0.5, format="%.2f")
-            advance_rate_pct = st.number_input("Advance Rate (%)", min_value=0.0, max_value=100.0, value=80.0, step=1.0, format="%.2f")
-            
-        with c3:
-            annual_interest_rate_pct = st.number_input("Annual Interest Rate (%)", min_value=0.0, value=18.0, step=0.25, format="%.2f")
-            arrangement_fee_pct = st.number_input("Arrangement Fee (%)", min_value=0.0, value=1.0, step=0.1, format="%.2f")
-        
-        # Additional fixed fee in a wider row or just below
-        fixed_fee = st.number_input("Fixed Fees (Legal/Processing $)", min_value=0.0, value=0.0, step=100.0, format="%.2f")
-
+    # Use a custom div to apply the rectangular border/card style via CSS
+    st.markdown('<div class="input-section-container">', unsafe_allow_html=True)
+    
+    # Add an explicit header and spacing inside the bordered container
+    st.markdown("### 🛠 Deal Parameters")
+    
+    # Add a small separator line for professionalism
     st.markdown("---")
+    
+    # Add vertical space before parameters start (bringing them down)
+    st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+    
+    # Input Widgets
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        invoice_amount = st.number_input("Invoice Amount ($)", min_value=0.0, value=10000.0, step=1000.0, format="%.2f")
+        days_outstanding = st.number_input("Days Outstanding", min_value=1, value=60, step=1)
+        
+    with c2:
+        margin_pct = st.number_input("Gross Margin (%)", min_value=0.0, value=25.0, step=0.5, format="%.2f")
+        advance_rate_pct = st.number_input("Advance Rate (%)", min_value=0.0, max_value=100.0, value=80.0, step=1.0, format="%.2f")
+        
+    with c3:
+        annual_interest_rate_pct = st.number_input("Annual Interest Rate (%)", min_value=0.0, value=18.0, step=0.25, format="%.2f")
+        arrangement_fee_pct = st.number_input("Arrangement Fee (%)", min_value=0.0, value=1.0, step=0.1, format="%.2f")
+    
+    # Additional fixed fee
+    st.markdown('<div style="margin-top: 15px;"></div>', unsafe_allow_html=True) # Adding a bit of space
+    fixed_fee = st.number_input("Fixed Fees (Legal/Processing $)", min_value=0.0, value=0.0, step=100.0, format="%.2f")
+
+    st.markdown('</div>', unsafe_allow_html=True) # Closing the custom input-section-container
+
+    # Original divider is no longer needed after the bordered input box
+    # st.markdown("---") 
     
     # ---------------------------
     #  Calculations
@@ -380,7 +366,7 @@ with col_main:
                 ).configure_view(
                     strokeWidth=0
                 ).configure_axis(
-                    labelFont='Inter',
+                    labelFont='Arial, Helvetica, sans-serif',
                     labelColor='#6B7280',
                     gridColor='#F3F4F6'
                 )
@@ -413,15 +399,7 @@ with col_main:
                     df_breakdown.to_html(index=False, classes="table table-striped", border=0, justify="left"), 
                     unsafe_allow_html=True
                 )
-                # Add simple CSS for this table specifically
-                st.markdown("""
-                <style>
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-                th { text-align: left; color: #6b7280 !important; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-                td { padding: 8px 0; color: #111827 !important; border-bottom: 1px solid #f3f4f6; }
-                tr:last-child td { border-bottom: none; font-weight: 600; }
-                </style>
-                """, unsafe_allow_html=True)
+                
             
     else:
         st.info("Please enter a valid invoice amount to generate calculations.")
