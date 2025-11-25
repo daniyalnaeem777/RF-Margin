@@ -76,7 +76,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-#  Aesthetic CSS Styling
+#  Aesthetic CSS Styling (NUCLEAR OPTION)
 # ---------------------------
 st.markdown(
     """
@@ -88,45 +88,68 @@ st.markdown(
         font-family: 'Inter', sans-serif;
     }
 
+    /* 1. THEME OVERRIDE 
+       Force the CSS variables to Light Mode values regardless of system settings.
+       This fixes the "dark background" leak.
+    */
+    :root {
+        --primary-color: #2563eb;
+        --background-color: #f8f9fa;
+        --secondary-background-color: #ffffff;
+        --text-color: #1f2937;
+        --font: "Inter", sans-serif;
+    }
+
     /* Background and global spacing */
     .stApp {
-        background-color: #f8f9fa;
-        color: #1f2937;
+        background-color: #f8f9fa !important;
+        color: #1f2937 !important;
     }
     
     /* ----------------------------------------------------------------- */
-    /* WIDGET STYLING (WHITE BOXES + NO BUTTONS)        */
+    /* WIDGET STYLING (FORCE WHITE BOXES + BLACK TEXT)                   */
     /* ----------------------------------------------------------------- */
     
-    /* 1. Force Widget Labels to be black (overrides dark mode) */
+    /* Force Widget Labels to be black */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
         color: #111827 !important;
         font-weight: 500 !important;
     }
 
-    /* 2. Target the Input Container (BaseWeb) -> Make it WHITE */
-    div[data-baseweb="input"] {
+    /* Target EVERY layer of the input box structure.
+       Streamlit inputs are nested divs. We must hit them all to ensure white bg.
+    */
+    div[data-baseweb="input"], 
+    div[data-baseweb="base-input"], 
+    .stTextInput div, 
+    .stNumberInput div {
         background-color: #ffffff !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 8px !important;
         color: #111827 !important;
+        border-color: #d1d5db; /* Default border */
     }
     
-    /* 3. Target the inner text input -> Force Black Text & White BG */
-    div[data-baseweb="input"] input {
+    /* Specific fix for the input text itself */
+    input[type="number"], input[type="text"] {
         color: #111827 !important;
-        background-color: transparent !important; /* Parent handles white bg */
-        caret-color: #111827 !important; /* Cursor color */
+        -webkit-text-fill-color: #111827 !important;
+        caret-color: #111827 !important;
+        background-color: #ffffff !important;
     }
 
-    /* 4. Hide the +/- (Step) Buttons on Number Inputs */
+    /* Border Radius fix for the container */
+    div[data-baseweb="input"] {
+        border-radius: 8px !important;
+        border: 1px solid #d1d5db !important;
+    }
+
+    /* Hide the +/- (Step) Buttons on Number Inputs */
     div[data-testid="stNumberInput"] button {
         display: none !important;
     }
     
-    /* 5. Add a Focus Ring for aesthetics when clicking the box */
+    /* Focus State - Blue Ring */
     div[data-baseweb="input"]:focus-within {
-        border-color: #2563eb !important; /* Blue-600 */
+        border-color: #2563eb !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     }
 
@@ -136,9 +159,9 @@ st.markdown(
 
     /* Style the bordered containers (st.container(border=True)) to be white cards */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #ffffff;
+        background-color: #ffffff !important;
         border-radius: 10px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e5e7eb !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         padding: 1.5rem;
     }
@@ -166,7 +189,7 @@ st.markdown(
     
     /* General Text Color Force */
     p, li, span {
-        color: #374151;
+        color: #374151 !important;
     }
 
     /* Remove the top colored bar from streamlit */
@@ -183,7 +206,7 @@ st.markdown(
     }
 
     .metric-card {
-        background: white;
+        background: white !important;
         padding: 1.5rem;
         border-radius: 10px;
         border: 1px solid #e5e7eb;
@@ -226,9 +249,16 @@ st.markdown(
     
     /* Expander Styling */
     .streamlit-expanderHeader {
-        background-color: white;
+        background-color: white !important;
         border-radius: 6px;
         color: #111827 !important;
+    }
+    
+    /* Force Tooltips in Altair to be readable */
+    #vg-tooltip-element {
+        color: #333 !important;
+        background: white !important;
+        border: 1px solid #ccc !important;
     }
     </style>
     """,
@@ -320,8 +350,6 @@ with col_main:
         # ---------------------------
         #  Visuals (Altair) & Table
         # ---------------------------
-        # We use st.container(border=True) to create the box effect
-        # The CSS targets div[data-testid="stVerticalBlockBorderWrapper"] to make it white and shadowed
         
         col_chart, col_data = st.columns([1.5, 1])
 
