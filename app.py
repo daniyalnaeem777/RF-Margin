@@ -105,18 +105,20 @@ st.markdown(
     }
     
     /* ----------------------------------------------------------------- */
-    /* GLITCH FIX: HIDE THE EMPTY WHITE BAR (The component causing the issue) */
-    /* This targets a common Streamlit container that appears empty at the top of the main body */
-    /* It assumes the bar is the very first vertical block container on the page body. */
-    .stApp > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) {
-        margin-top: -2rem; /* Pull up elements if possible */
-        height: 0px !important; 
-        min-height: 0px !important;
-        padding-top: 0px !important;
-        padding-bottom: 0px !important;
-        overflow: hidden;
-        border: none !important;
-        box-shadow: none !important;
+    /* GLITCH FIX: HIDE THE EMPTY WHITE BAR (More Aggressive Targeting)  */
+    /* ----------------------------------------------------------------- */
+    
+    /* Target the main app view block and remove its padding. */
+    div[data-testid="stAppViewBlockContainer"] {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    /* Target the container above the title/subtitle and remove its padding/margin. */
+    /* This is often the culprit for the large empty space at the very top. */
+    .stApp > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
     }
 
     /* ----------------------------------------------------------------- */
