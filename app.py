@@ -76,7 +76,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-#  Aesthetic CSS Styling (Updated for Helvetica, Bold Headings, and Input Box Border)
+#  Aesthetic CSS Styling
 # ---------------------------
 st.markdown(
     """
@@ -285,9 +285,6 @@ with col_main:
 
     st.markdown('</div>', unsafe_allow_html=True) # Closing the custom input-section-container
 
-    # Original divider is no longer needed after the bordered input box
-    # st.markdown("---") 
-    
     # ---------------------------
     #  Calculations
     # ---------------------------
