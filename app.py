@@ -93,12 +93,20 @@ st.markdown(
         background-color: #f8f9fa;
         color: #1f2937;
     }
+    
+    /* CRITICAL FIX: Force all Widget Labels to be black.
+       This overrides Streamlit's Dark Mode default which makes them white.
+    */
+    div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel {
+        color: #111827 !important;
+        font-weight: 500 !important;
+    }
 
     /* Titles */
     h1 {
         font-weight: 700;
         letter-spacing: -0.02em;
-        color: #111827;
+        color: #111827 !important;
         margin-bottom: 0.5rem;
     }
     
@@ -106,6 +114,11 @@ st.markdown(
         font-size: 1.1rem;
         color: #6b7280;
         margin-bottom: 2rem;
+    }
+    
+    /* General Text Color Force */
+    p, li, span {
+        color: #374151;
     }
 
     /* Custom Cards for Inputs */
@@ -118,11 +131,16 @@ st.markdown(
         margin-bottom: 2rem;
     }
 
-    /* Input Fields Styling */
+    /* Input Fields Styling - Force White Background/Dark Text */
     div[data-baseweb="input"] {
         border-radius: 6px;
         border: 1px solid #d1d5db;
-        background-color: #fff;
+        background-color: #ffffff !important;
+    }
+    
+    div[data-baseweb="input"] input {
+        color: #111827 !important;
+        background-color: transparent !important;
     }
     
     /* Remove the top colored bar from streamlit */
@@ -157,25 +175,25 @@ st.markdown(
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #6b7280;
+        color: #6b7280 !important;
         margin-bottom: 0.5rem;
     }
 
     .metric-value {
         font-size: 1.8rem;
         font-weight: 700;
-        color: #111827;
+        color: #111827 !important;
     }
 
     .metric-sub {
         font-size: 0.85rem;
         margin-top: 0.5rem;
-        color: #4b5563;
+        color: #4b5563 !important;
     }
     
-    .negative { color: #ef4444; }
-    .positive { color: #10b981; }
-    .neutral { color: #3b82f6; }
+    .negative { color: #ef4444 !important; }
+    .positive { color: #10b981 !important; }
+    .neutral { color: #3b82f6 !important; }
 
     /* Hide Streamlit footer */
     footer {visibility: hidden;}
@@ -184,6 +202,7 @@ st.markdown(
     .streamlit-expanderHeader {
         background-color: white;
         border-radius: 6px;
+        color: #111827 !important;
     }
     </style>
     """,
@@ -340,8 +359,8 @@ with col_main:
             st.markdown("""
             <style>
             table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-            th { text-align: left; color: #6b7280; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-            td { padding: 8px 0; color: #111827; border-bottom: 1px solid #f3f4f6; }
+            th { text-align: left; color: #6b7280 !important; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+            td { padding: 8px 0; color: #111827 !important; border-bottom: 1px solid #f3f4f6; }
             tr:last-child td { border-bottom: none; font-weight: 600; }
             </style>
             """, unsafe_allow_html=True)
